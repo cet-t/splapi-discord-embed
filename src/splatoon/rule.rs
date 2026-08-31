@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 #[derive(Debug, Clone, Copy, strum::EnumString)]
 pub enum Rule {
     #[strum(to_string = "TURF_WAR")]
@@ -28,7 +30,7 @@ impl Rule {
     pub fn colour_string(&self) -> String {
         match self {
             Rule::TurfWar => "#00ff00",
-            _ => "#ff0000",
+            _ => "#ffa500",
         }
         .to_owned()
     }
@@ -47,5 +49,12 @@ impl std::fmt::Display for Rule {
                 Rule::ClamBlitz => "ガチアサリ",
             }
         )
+    }
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<String> for Rule {
+    fn into(self) -> String {
+        self.to_string()
     }
 }

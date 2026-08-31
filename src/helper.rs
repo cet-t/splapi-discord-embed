@@ -8,8 +8,9 @@ pub fn render_embed_html(info: &RawScheduleInfo, t: Option<u32>) -> anyhow::Resu
     Ok(build_html(info, t))
 }
 
-fn escape_html(s: &str) -> String {
-    s.replace('&', "&amp;")
+fn escape_html<S: Into<String>>(s: S) -> String {
+    s.into()
+        .replace('&', "&amp;")
         .replace('<', "&lt;")
         .replace('>', "&gt;")
         .replace('"', "&quot;")
@@ -57,7 +58,7 @@ fn build_html(info: &RawScheduleInfo, _t: Option<u32>) -> String {
         srcs.join("\n")
     };
 
-    let title = escape_html(&info.rule.to_string());
+    let title = escape_html(info.rule);
     let desc = escape_html(&desc);
     let colour = info.rule.colour_string();
 
