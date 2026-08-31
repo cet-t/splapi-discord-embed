@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 #[derive(Debug, Clone, Copy, strum::EnumString)]
 pub enum Rule {
     #[strum(to_string = "TURF_WAR")]

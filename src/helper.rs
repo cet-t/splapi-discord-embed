@@ -2,6 +2,7 @@ use chrono::NaiveDateTime;
 
 use crate::splatoon::RawScheduleInfo;
 
+// spl3.run/open
 const SITE_URL: &str = "splapi3.cet.run";
 
 pub fn render_embed_html(info: &RawScheduleInfo, t: Option<u32>) -> anyhow::Result<String> {
