@@ -2,7 +2,6 @@ mod mode;
 mod response;
 mod rule;
 mod schedule;
-mod weapon;
 
 pub use mode::*;
 pub use response::*;
@@ -23,21 +22,21 @@ fn build_url(mode: self::Mode, sche: self::Schedule) -> String {
     format!("https://spla3.yuu26.com/api/{mode}/{sche}")
 }
 
-async fn enquiry(client: &reqwest::Client, url: String) -> anyhow::Result<self::RawResponse> {
+async fn enquiry(client: reqwest::Client, url: String) -> anyhow::Result<self::RawResponse> {
     let res = get!(client, url);
     Ok(serde_json::from_str(&res)?)
 }
 
 pub async fn q(
-    _client: &reqwest::Client,
+    client: reqwest::Client,
     mode: self::Mode,
-    sche: self::Schedule,
+    schedule: self::Schedule,
 ) -> anyhow::Result<self::RawResponse> {
-    enquiry(_client, build_url(mode, sche)).await
+    enquiry(client, build_url(mode, schedule)).await
 }
 
 pub async fn q_after(
-    _client: &reqwest::Client,
+    client: reqwest::Client,
     mode: self::Mode,
     sche: self::Schedule,
 ) -> anyhow::Result<self::RawScheduleInfo> {
@@ -45,10 +44,9 @@ pub async fn q_after(
         anyhow::bail!("q_after requires a Schedule::After variant")
     };
 
-    let response = q(_client, mode, sche).await?;
-    response
-        .results
+    let r = q(client, mode, sche).await?;
+    r.results
         .into_iter()
-        .nth(index as usize) // n=0 is the currently ongoing match, same as `now`
+        .nth(index as usize)
         .ok_or_else(|| anyhow::anyhow!("n={index} is out of range"))
 }

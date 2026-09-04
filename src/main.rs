@@ -1,35 +1,38 @@
 mod cliargs;
+mod data;
 mod helper;
 mod splatoon;
 
 use axum::{
     Router,
-    extract::{Query, State},
+    extract::{Path, Query, State},
+    response::Html,
     routing::get,
 };
 use clap::Parser;
 
 use crate::{
     cliargs::Cli,
+    data::Cache,
     helper::render_embed_html,
     splatoon::{Mode, Schedule, q, q_after},
 };
 
-#[derive(serde::Deserialize)]
-#[serde(deny_unknown_fields)]
-struct EmbedQuery {
-    /// cache buster
-    t: Option<u32>,
-    /// schedule index
-    #[serde(alias = "i")]
-    n: Option<u8>,
+macro_rules! helper_now {
+    ($cb:ident) => {
+        ::axum::routing::get(|c, q| async move {
+            ::axum::response::Html(
+                $cb(c, q)
+                    .await
+                    .unwrap_or_else(|_| ::axum::response::Html("Error".to_owned())),
+            )
+        })
+    };
 }
 
-macro_rules! helper {
-    ($cb:expr) => {
-        ::axum::routing::get(|s, q| async move {
-            ::axum::response::Html($cb(s, q).await.unwrap_or_else(|_| "ERROR".to_owned()))
-        })
+macro_rules! helper_sche {
+    ($cb:ident) => {
+        ::axum::routing::get(|c, q, s| async move { ::axum::response::Html($cb(c, q, s).await) })
     };
 }
 
@@ -46,12 +49,10 @@ async fn main() -> anyhow::Result<()> {
     // build our application with a single route
     let app = Router::new()
         .route("/", get(|| async { "Hello, World!" }))
-        .route("/open", helper!(get_open_now))
-        .route("/open/now", helper!(get_open_now))
-        .route("/open/next", helper!(get_open_next))
-        .route("/regular", helper!(get_regular_now))
-        .route("/regular/now", helper!(get_regular_now))
-        .route("/regular/next", helper!(get_regular_next))
+        .route("/open", helper_now!(get_open_now))
+        .route("/regular", helper_now!(get_regular_now))
+        .route("/open/{*schedule}", helper_sche!(get_open_schedule))
+        .route("/regular/{*schedule}", helper_sche!(get_regular_schedule))
         .with_state(client);
 
     // run our app with hyper, listening globally on port 3000
@@ -61,49 +62,70 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
+// --- open ---
+
+async fn get_open_schedule(
+    State(client): State<reqwest::Client>,
+    Query(query): Query<data::EmbedQuery>,
+    Path(schedule): Path<data::Schedule>,
+) -> Html<String> {
+    get_info(client, schedule, Mode::BankaraOpen, query)
+        .await
+        .unwrap_or_else(|_| Html("Error".to_owned()))
+}
+
 async fn get_open_now(
     State(client): State<reqwest::Client>,
-    Query(EmbedQuery { t, .. }): Query<EmbedQuery>,
-) -> anyhow::Result<String> {
-    let response = q(&client, Mode::BankaraOpen, Schedule::Now).await?;
-    if response.results.is_empty() {
+    Query(query): Query<data::EmbedQuery>,
+) -> anyhow::Result<::axum::response::Html<String>> {
+    let r = q(client, Mode::BankaraOpen, Schedule::Now).await?;
+    if r.results.is_empty() {
         anyhow::bail!("")
     } else {
-        render_embed_html(&response.results[0], t)
+        Ok(Html(render_embed_html(&r.results[0], query.t)?))
     }
 }
 
-async fn get_open_next(
+// --- regular ---
+
+async fn get_regular_schedule(
     State(client): State<reqwest::Client>,
-    Query(EmbedQuery { t, n, .. }): Query<EmbedQuery>,
-) -> anyhow::Result<String> {
-    get_next(&client, Mode::BankaraOpen, n, t).await
+    Query(query): Query<data::EmbedQuery>,
+    Path(schedule): Path<data::Schedule>,
+) -> Html<String> {
+    get_info(client, schedule, Mode::Regular, query)
+        .await
+        .unwrap_or(Html("Error".to_owned()))
 }
 
 async fn get_regular_now(
     State(client): State<reqwest::Client>,
-    Query(EmbedQuery { t, .. }): Query<EmbedQuery>,
-) -> anyhow::Result<String> {
-    let response = q(&client, Mode::Regular, Schedule::Now).await?;
-    if response.results.is_empty() {
+    Query(query): Query<data::EmbedQuery>,
+) -> anyhow::Result<Html<String>> {
+    let r = q(client, Mode::Regular, Schedule::Now).await?;
+    if r.results.is_empty() {
         anyhow::bail!("")
+    } else {
+        Ok(Html(render_embed_html(&r.results[0], query.t)?))
     }
-    render_embed_html(&response.results[0], t)
 }
 
-async fn get_regular_next(
-    State(client): State<reqwest::Client>,
-    Query(EmbedQuery { t, n, .. }): Query<EmbedQuery>,
-) -> anyhow::Result<String> {
-    get_next(&client, Mode::Regular, n, t).await
-}
+// --- core ---
 
-async fn get_next(
-    client: &reqwest::Client,
+async fn get_info(
+    client: reqwest::Client,
+    schedule: data::Schedule,
     mode: Mode,
-    n: Option<u8>,
-    t: Option<u32>,
-) -> anyhow::Result<String> {
-    let info = q_after(client, mode, Schedule::After(n.unwrap_or(1))).await?;
-    render_embed_html(&info, t)
+    query: data::EmbedQuery,
+) -> anyhow::Result<Html<String>> {
+    Ok(Html(match schedule {
+        data::Schedule::Now => {
+            let r = q(client, mode, Schedule::Now).await?;
+            render_embed_html(r.results.first().ok_or(anyhow::anyhow!("ERROR"))?, query.t)?
+        }
+        data::Schedule::Next => {
+            let info = q_after(client, mode, Schedule::After(query.n.unwrap_or(1))).await?;
+            render_embed_html(&info, query.t)?
+        }
+    }))
 }
