@@ -31,8 +31,9 @@ impl std::fmt::Display for Schedule {
     }
 }
 
+#[derive(Clone)]
 pub struct Cache {
-    client: reqwest::Client,
+    pub client: reqwest::Client,
 }
 
 impl Cache {

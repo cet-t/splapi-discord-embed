@@ -2,8 +2,7 @@ use chrono::NaiveDateTime;
 
 use crate::splatoon::RawScheduleInfo;
 
-// spl3.run/open
-const SITE_URL: &str = "splapi3.cet.run";
+const SITE_URL: &str = "splat.site";
 
 pub fn render_embed_html(info: &RawScheduleInfo, t: Option<u32>) -> anyhow::Result<String> {
     Ok(build_html(info, t))
@@ -30,8 +29,8 @@ fn build_html(info: &RawScheduleInfo, _t: Option<u32>) -> String {
             .collect();
         let time = format!(
             "{} - {}",
-            format_dt(info.start_time),
-            format_dt(info.end_time)
+            format_dt(info.start_time.naive_local()),
+            format_dt(info.end_time.naive_local())
         );
         format!("{time}\n{}", stage_names.join("\n"))
     };
@@ -40,7 +39,12 @@ fn build_html(info: &RawScheduleInfo, _t: Option<u32>) -> String {
         let metas: Vec<_> = info
             .stages
             .iter()
-            .map(|s| format!("<meta property=\"og:image\" content=\"{}\">", s.image))
+            .map(|s| {
+                format!(
+                    "<meta property=\"og:image\" content=\"{}\">",
+                    escape_html(&s.image_url)
+                )
+            })
             .collect();
         metas.join("\n")
     };
@@ -52,7 +56,7 @@ fn build_html(info: &RawScheduleInfo, _t: Option<u32>) -> String {
             .map(|s| {
                 format!(
                     "<img src=\"{}\" alt=\"stage\" style=\"max-width:100%\">",
-                    s.image
+                    escape_html(&s.image_url)
                 )
             })
             .collect();

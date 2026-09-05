@@ -13,7 +13,7 @@ use clap::Parser;
 
 use crate::{
     cliargs::Cli,
-    data::Cache,
+    data::{Cache, EmbedQuery},
     helper::render_embed_html,
     splatoon::{Mode, Schedule, q, q_after},
 };
@@ -36,15 +36,16 @@ macro_rules! helper_sche {
     };
 }
 
+fn error_html() -> Html<String> {
+    Html("Error".to_owned())
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
-    let port = cli.port()?;
-    let addr = format!("0.0.0.0:{port}");
+    let addr = format!("0.0.0.0:{}", cli.port()?);
 
     println!("Server Start: {addr}");
-
-    let client = reqwest::Client::new();
 
     // build our application with a single route
     let app = Router::new()
@@ -53,7 +54,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/regular", helper_now!(get_regular_now))
         .route("/open/{*schedule}", helper_sche!(get_open_schedule))
         .route("/regular/{*schedule}", helper_sche!(get_regular_schedule))
-        .with_state(client);
+        .with_state(Cache::new());
 
     // run our app with hyper, listening globally on port 3000
     let listener = tokio::net::TcpListener::bind(addr).await?;
@@ -65,48 +66,54 @@ async fn main() -> anyhow::Result<()> {
 // --- open ---
 
 async fn get_open_schedule(
-    State(client): State<reqwest::Client>,
-    Query(query): Query<data::EmbedQuery>,
+    State(cache): State<Cache>,
+    Query(query): Query<EmbedQuery>,
     Path(schedule): Path<data::Schedule>,
 ) -> Html<String> {
-    get_info(client, schedule, Mode::BankaraOpen, query)
+    get_info(cache.client, schedule, Mode::BankaraOpen, query)
         .await
-        .unwrap_or_else(|_| Html("Error".to_owned()))
+        .unwrap_or(error_html())
 }
 
 async fn get_open_now(
-    State(client): State<reqwest::Client>,
-    Query(query): Query<data::EmbedQuery>,
+    State(cache): State<Cache>,
+    Query(query): Query<EmbedQuery>,
 ) -> anyhow::Result<::axum::response::Html<String>> {
-    let r = q(client, Mode::BankaraOpen, Schedule::Now).await?;
+    let r = q(cache.client, Mode::BankaraOpen, Schedule::Now).await?;
     if r.results.is_empty() {
         anyhow::bail!("")
     } else {
-        Ok(Html(render_embed_html(&r.results[0], query.t)?))
+        Ok(Html(render_embed_html(
+            r.results.first().ok_or(anyhow::anyhow!(""))?,
+            query.t,
+        )?))
     }
 }
 
 // --- regular ---
 
 async fn get_regular_schedule(
-    State(client): State<reqwest::Client>,
-    Query(query): Query<data::EmbedQuery>,
+    State(cache): State<Cache>,
+    Query(query): Query<EmbedQuery>,
     Path(schedule): Path<data::Schedule>,
 ) -> Html<String> {
-    get_info(client, schedule, Mode::Regular, query)
+    get_info(cache.client, schedule, Mode::Regular, query)
         .await
-        .unwrap_or(Html("Error".to_owned()))
+        .unwrap_or(error_html())
 }
 
 async fn get_regular_now(
-    State(client): State<reqwest::Client>,
-    Query(query): Query<data::EmbedQuery>,
+    State(cache): State<Cache>,
+    Query(query): Query<EmbedQuery>,
 ) -> anyhow::Result<Html<String>> {
-    let r = q(client, Mode::Regular, Schedule::Now).await?;
+    let r = q(cache.client, Mode::Regular, Schedule::Now).await?;
     if r.results.is_empty() {
         anyhow::bail!("")
     } else {
-        Ok(Html(render_embed_html(&r.results[0], query.t)?))
+        Ok(Html(render_embed_html(
+            r.results.first().ok_or(anyhow::anyhow!(""))?,
+            query.t,
+        )?))
     }
 }
 
@@ -116,7 +123,7 @@ async fn get_info(
     client: reqwest::Client,
     schedule: data::Schedule,
     mode: Mode,
-    query: data::EmbedQuery,
+    query: EmbedQuery,
 ) -> anyhow::Result<Html<String>> {
     Ok(Html(match schedule {
         data::Schedule::Now => {
