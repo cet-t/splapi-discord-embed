@@ -1,11 +1,16 @@
+use axum::response::Html;
 use chrono::NaiveDateTime;
 
-use crate::splatoon::RawScheduleInfo;
+use crate::splatoon::schedule::RawScheduleInfo;
 
 const SITE_URL: &str = "splat.site";
 
 pub fn render_embed_html(info: &RawScheduleInfo, t: Option<u32>) -> anyhow::Result<String> {
     Ok(build_html(info, t))
+}
+
+pub fn error_html() -> Html<String> {
+    Html("Error".to_owned())
 }
 
 fn escape_html<S: Into<String>>(s: S) -> String {

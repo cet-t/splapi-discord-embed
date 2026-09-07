@@ -1,6 +1,6 @@
 #[derive(Debug, clap::Parser)]
 pub struct Cli {
-    #[clap(long("port"))]
+    #[clap(long("port"), default_value("3002"))]
     port: u16,
 }
 

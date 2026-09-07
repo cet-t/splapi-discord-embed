@@ -3,7 +3,7 @@
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Deserializer};
 
-use crate::splatoon::Rule;
+use crate::splatoon::schedule::Rule;
 
 #[derive(Clone, Deserialize)]
 pub struct RawResponse {

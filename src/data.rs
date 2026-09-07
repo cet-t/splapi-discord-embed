@@ -9,7 +9,7 @@ pub struct EmbedQuery {
 }
 
 #[derive(Debug, Clone, Copy, strum::EnumString, serde::Deserialize)]
-pub enum Schedule {
+pub enum ScheduleInput {
     #[strum(serialize = "now")]
     #[serde(alias = "now")]
     Now,
@@ -18,14 +18,14 @@ pub enum Schedule {
     Next,
 }
 
-impl std::fmt::Display for Schedule {
+impl std::fmt::Display for ScheduleInput {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "{}",
             match self {
-                Schedule::Now => "now",
-                Schedule::Next => "next",
+                ScheduleInput::Now => "now",
+                ScheduleInput::Next => "next",
             }
         )
     }
