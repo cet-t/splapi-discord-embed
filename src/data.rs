@@ -1,3 +1,5 @@
+use crate::rgb::Rgb;
+
 #[derive(serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct EmbedQuery {
@@ -6,6 +8,8 @@ pub struct EmbedQuery {
     /// schedule index
     #[serde(alias = "i")]
     pub n: Option<u8>,
+    #[serde(alias = "color", alias = "c")]
+    pub colour: Option<Rgb>,
 }
 
 #[derive(Debug, Clone, Copy, strum::EnumString, serde::Deserialize)]

@@ -1,0 +1,237 @@
+@font-face {
+  font-family: "Ikamodoki";
+  src: url("/fonts/ikamodoki1_0.ttf") format("truetype");
+  font-display: swap;
+}
+@font-face {
+  font-family: "Paintball";
+  src: url("/fonts/Paintball_Beta_3.ttf") format("truetype");
+  font-display: swap;
+}
+:root {
+  --bg: #1a1a1a;
+  --panel: #232323;
+  --border: #3a3a3a;
+  --text: #f5f5f5;
+  --muted: #b8b8b8;
+  --accent: #ffe600;
+  --accent2: #2e81ff;
+  --accent3: #00e5c7;
+  --code-bg: #141414;
+  --link: #00e5c7;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f4f2ea;
+    --panel: #ffffff;
+    --border: #dcd8c8;
+    --text: #1a1a1a;
+    --muted: #6b6558;
+    --accent: #ffcc00;
+    --accent2: #2e81ff;
+    --accent3: #00b39c;
+    --code-bg: #efece0;
+    --link: #d6006c;
+  }
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  background-image: linear-gradient(
+    135deg,
+    transparent 0 24px,
+    rgba(255, 230, 0, 0.03) 24px 26px,
+    transparent 26px 60px
+  );
+  background-size: 60px 60px;
+  color: var(--text);
+  font-family:
+    "Ikamodoki",
+    "Paintball",
+    "Noto Sans JP",
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    "Hiragino Kaku Gothic ProN",
+    Meiryo,
+    sans-serif;
+  line-height: 1.7;
+}
+header {
+  position: relative;
+  padding: 56px 24px 32px;
+  text-align: center;
+  background: linear-gradient(
+    120deg,
+    var(--accent2) 0%,
+    var(--accent2) 48%,
+    var(--accent) 52%,
+    var(--accent) 100%
+  );
+  clip-path: polygon(0 0, 100% 0, 100% 88%, 0 100%);
+  overflow: hidden;
+}
+header h1 {
+  margin: 0 0 10px;
+  font-family: "Paintball", "Ikamodoki", sans-serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #14141a;
+  text-shadow:
+    2px 2px 0 rgba(255, 255, 255, 0.35),
+    -1px -1px 0 rgba(0, 0, 0, 0.15);
+  transform: rotate(-1.5deg);
+}
+header p {
+  margin: 0;
+  color: #14141a;
+  font-weight: 500;
+  opacity: 0.85;
+}
+main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+}
+section {
+  margin-bottom: 36px;
+}
+h2 {
+  display: inline-block;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--bg);
+  background: var(--accent);
+  padding: 6px 16px 6px 14px;
+  margin-bottom: 16px;
+  clip-path: polygon(0 0, 100% 0, 96% 100%, 4% 100%);
+  transform: skew(-8deg);
+}
+h2::before {
+  content: none;
+}
+label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+select,
+input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 2px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+select:focus,
+input:focus {
+  outline: none;
+  border-color: var(--accent3);
+}
+.row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.row > div {
+  flex: 1;
+}
+.card {
+  background: var(--panel);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+  position: relative;
+}
+code,
+pre {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-size: 0.88rem;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+#url-output,
+#base {
+  font-family: "Ikamodoki", "Paintball", "Noto Sans JP", sans-serif;
+}
+button {
+  cursor: pointer;
+  background: var(--accent);
+  color: #14141a;
+  border: none;
+  border-radius: 4px;
+  padding: 11px 22px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: inherit;
+  letter-spacing: 0.3px;
+  clip-path: polygon(6% 0, 100% 0, 94% 100%, 0 100%);
+  box-shadow: 3px 3px 0 var(--accent2);
+  transition:
+    transform 0.12s,
+    box-shadow 0.12s;
+}
+button:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--accent2);
+}
+button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--accent2);
+  opacity: 1;
+}
+.copied {
+  color: var(--accent3);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-left: 10px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.copied.show {
+  opacity: 1;
+}
+a {
+  color: var(--link);
+}
+footer {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+  padding: 24px;
+  border-top: 2px solid var(--border);
+}
+.gh-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  color: var(--muted);
+  text-decoration: none;
+}
+.gh-link:hover {
+  color: var(--link);
+}
+.gh-link svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}

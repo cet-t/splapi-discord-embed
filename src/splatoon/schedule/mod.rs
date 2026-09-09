@@ -1,20 +1,20 @@
 mod mode;
+mod query;
 mod response;
 mod rule;
-mod schedule;
+mod sche;
 
-use axum::{
-    extract::{Path, Query, State},
-    response::Html,
-};
-pub use mode::*;
-pub use response::*;
-pub use rule::*;
-pub use schedule::*;
+use axum::response::Html;
+
+pub use self::mode::*;
+pub use self::query::*;
+pub use self::response::*;
+pub use self::rule::*;
+pub use self::sche::*;
 
 use crate::{
-    data::{Cache, EmbedQuery, ScheduleInput},
-    helper::{error_html, render_embed_html},
+    data::{EmbedQuery, ScheduleInput},
+    helper::render_embed_html_sche,
 };
 
 fn build_url(mode: self::Mode, sche: self::Schedule) -> String {
@@ -50,60 +50,6 @@ async fn q_after(
         .ok_or_else(|| anyhow::anyhow!("n={index} is out of range"))
 }
 
-// --- open ---
-
-pub async fn get_open_schedule(
-    State(cache): State<Cache>,
-    Query(query): Query<EmbedQuery>,
-    Path(schedule): Path<ScheduleInput>,
-) -> Html<String> {
-    get_info(cache.client, schedule, Mode::BankaraOpen, query)
-        .await
-        .unwrap_or(error_html())
-}
-
-pub async fn get_open_now(
-    State(cache): State<Cache>,
-    Query(query): Query<EmbedQuery>,
-) -> anyhow::Result<::axum::response::Html<String>> {
-    let r = q(cache.client, Mode::BankaraOpen, Schedule::Now).await?;
-    if r.results.is_empty() {
-        anyhow::bail!("")
-    } else {
-        Ok(Html(render_embed_html(
-            r.results.first().ok_or(anyhow::anyhow!(""))?,
-            query.t,
-        )?))
-    }
-}
-
-// --- regular ---
-
-pub async fn get_regular_schedule(
-    State(cache): State<Cache>,
-    Query(query): Query<EmbedQuery>,
-    Path(schedule): Path<ScheduleInput>,
-) -> Html<String> {
-    get_info(cache.client, schedule, Mode::Regular, query)
-        .await
-        .unwrap_or(error_html())
-}
-
-pub async fn get_regular_now(
-    State(cache): State<Cache>,
-    Query(query): Query<EmbedQuery>,
-) -> anyhow::Result<Html<String>> {
-    let r = q(cache.client, Mode::Regular, Schedule::Now).await?;
-    if r.results.is_empty() {
-        anyhow::bail!("")
-    } else {
-        Ok(Html(render_embed_html(
-            r.results.first().ok_or(anyhow::anyhow!(""))?,
-            query.t,
-        )?))
-    }
-}
-
 // --- core ---
 
 async fn get_info(
@@ -112,14 +58,14 @@ async fn get_info(
     mode: Mode,
     query: EmbedQuery,
 ) -> anyhow::Result<Html<String>> {
-    Ok(Html(match schedule {
+    Ok(match schedule {
         ScheduleInput::Now => {
             let r = q(client, mode, Schedule::Now).await?;
-            render_embed_html(r.results.first().ok_or(anyhow::anyhow!("ERROR"))?, query.t)?
+            render_embed_html_sche(r.results.first().ok_or(anyhow::anyhow!("ERROR"))?, query)
         }
         ScheduleInput::Next => {
             let info = q_after(client, mode, Schedule::After(query.n.unwrap_or(1))).await?;
-            render_embed_html(&info, query.t)?
+            render_embed_html_sche(&info, query)
         }
-    }))
+    })
 }

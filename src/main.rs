@@ -1,16 +1,19 @@
 mod cliargs;
+mod common;
 mod data;
 mod helper;
+mod rgb;
 mod splatoon;
 
 use axum::{Router, routing::get};
 use clap::Parser;
+use tower_http::services::ServeDir;
 
 use crate::{
     cliargs::Cli,
     data::Cache,
     splatoon::{
-        schedule::{get_open_now, get_open_schedule, get_regular_now, get_regular_schedule},
+        schedule::{self, get_open_now, get_regular_now},
         weapon,
     },
 };
@@ -34,17 +37,21 @@ async fn main() -> anyhow::Result<()> {
 
     println!("Server Start: {addr}");
 
+    let cache = Cache::new();
+
     // build our application with a single route
     let app = Router::new()
-        .route("/", get(|| async { "Hello, World!" }))
+        .route("/", get(common::get_url_builder))
+        .route("/docs", get(common::get_docs))
         // stage rotation
         .route("/open", helper_now!(get_open_now))
         .route("/regular", helper_now!(get_regular_now))
-        .route("/open/{*schedule}", get(get_open_schedule))
-        .route("/regular/{*schedule}", get(get_regular_schedule))
+        .route("/open/{*schedule}", get(schedule::get_open_schedule))
+        .route("/regular/{*schedule}", get(schedule::get_regular_schedule))
         // weapon
         .route("/weapon", get(weapon::get_weapon))
-        .with_state(Cache::new());
+        .with_state(cache)
+        .nest_service("/fonts", ServeDir::new("assets/fonts"));
 
     // run our app with hyper, listening globally on port 3000
     let listener = tokio::net::TcpListener::bind(addr).await?;

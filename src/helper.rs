@@ -1,12 +1,19 @@
 use axum::response::Html;
 use chrono::NaiveDateTime;
 
-use crate::splatoon::schedule::RawScheduleInfo;
+use crate::{
+    data::EmbedQuery,
+    splatoon::{schedule::RawScheduleInfo, weapon::RawWeaponInfo},
+};
 
 const SITE_URL: &str = "splat.site";
 
-pub fn render_embed_html(info: &RawScheduleInfo, t: Option<u32>) -> anyhow::Result<String> {
-    Ok(build_html(info, t))
+pub fn render_embed_html_sche(info: &RawScheduleInfo, t: EmbedQuery) -> Html<String> {
+    build_html_sche(info, t)
+}
+
+pub fn render_embed_html_weapon(info: &RawWeaponInfo) -> Html<String> {
+    build_html_weapon(info)
 }
 
 pub fn error_html() -> Html<String> {
@@ -25,7 +32,7 @@ fn format_dt(dt: NaiveDateTime) -> String {
     dt.format("%m/%d %H:%M").to_string()
 }
 
-fn build_html(info: &RawScheduleInfo, _t: Option<u32>) -> String {
+fn build_html_sche(info: &RawScheduleInfo, query: EmbedQuery) -> Html<String> {
     let desc = {
         let stage_names: Vec<_> = info
             .stages
@@ -70,9 +77,13 @@ fn build_html(info: &RawScheduleInfo, _t: Option<u32>) -> String {
 
     let title = escape_html(info.rule);
     let desc = escape_html(&desc);
-    let colour = info.rule.colour_string();
+    let colour = if let Some(c) = query.colour {
+        format!("{c}")
+    } else {
+        info.rule.colour_string()
+    };
 
-    format!(
+    Html(format!(
         r#"<!DOCTYPE html>
         <html lang="ja">
         <head>
@@ -91,5 +102,27 @@ fn build_html(info: &RawScheduleInfo, _t: Option<u32>) -> String {
           {imgs_src}
         </body>
         </html>"#
-    )
+    ))
+}
+
+fn build_html_weapon(info: &RawWeaponInfo) -> Html<String> {
+    let title = escape_html(&info.name.ja_JP);
+    let colour = escape_html("#ffffff");
+
+    Html(format!(
+        r#"<!DOCTYPE html>
+        <html lang="ja">
+        <head>
+          <meta charset="utf-8">
+          <meta property="og:site_name" content="{SITE_URL}">
+          <meta property="og:title" content="{title}">
+          <meta name="twitter:card" content="summary">
+          <meta name="theme-color" content="{colour}">
+          <title>{title}</title>
+        </head>
+        <body>
+          <h1>{title}</h1>
+        </body>
+        </html>"#
+    ))
 }
