@@ -12,10 +12,7 @@ use tower_http::services::ServeDir;
 use crate::{
     cliargs::Cli,
     data::Cache,
-    splatoon::{
-        schedule::{self, get_open_now, get_regular_now},
-        weapon,
-    },
+    splatoon::{schedule, weapon},
 };
 
 macro_rules! helper_now {
@@ -43,9 +40,9 @@ async fn main() -> anyhow::Result<()> {
     let app = Router::new()
         .route("/", get(common::get_url_builder))
         .route("/docs", get(common::get_docs))
-        // stage rotation
-        .route("/open", helper_now!(get_open_now))
-        .route("/regular", helper_now!(get_regular_now))
+        // rotation
+        .route("/open", get(schedule::get_open_now))
+        .route("/regular", get(schedule::get_regular_now))
         .route("/open/{*schedule}", get(schedule::get_open_schedule))
         .route("/regular/{*schedule}", get(schedule::get_regular_schedule))
         // weapon

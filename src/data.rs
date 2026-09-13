@@ -4,7 +4,8 @@ use crate::rgb::Rgb;
 #[serde(deny_unknown_fields)]
 pub struct EmbedQuery {
     /// cache buster
-    pub t: Option<u32>,
+    #[serde(rename = "t")]
+    pub _t: Option<u32>,
     /// schedule index
     #[serde(alias = "i")]
     pub n: Option<u8>,

@@ -14,7 +14,7 @@ pub use self::sche::*;
 
 use crate::{
     data::{EmbedQuery, ScheduleInput},
-    helper::render_embed_html_sche,
+    helper::build_html_sche,
 };
 
 fn build_url(mode: self::Mode, sche: self::Schedule) -> String {
@@ -61,11 +61,11 @@ async fn get_info(
     Ok(match schedule {
         ScheduleInput::Now => {
             let r = q(client, mode, Schedule::Now).await?;
-            render_embed_html_sche(r.results.first().ok_or(anyhow::anyhow!("ERROR"))?, query)
+            build_html_sche(r.results.first().ok_or(anyhow::anyhow!("ERROR"))?, query)
         }
         ScheduleInput::Next => {
             let info = q_after(client, mode, Schedule::After(query.n.unwrap_or(1))).await?;
-            render_embed_html_sche(&info, query)
+            build_html_sche(&info, query)
         }
     })
 }

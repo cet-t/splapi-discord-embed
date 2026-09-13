@@ -5,56 +5,44 @@ use axum::{
 
 use crate::{
     data::{Cache, EmbedQuery, ScheduleInput},
-    helper::{error_html, render_embed_html_sche},
-    splatoon::schedule::{Mode, Schedule, get_info, q},
+    helper::error_html,
+    splatoon::schedule::{Mode, get_info},
 };
 
 pub async fn get_open_schedule(
-    State(cache): State<Cache>,
+    State(Cache { client }): State<Cache>,
     Query(query): Query<EmbedQuery>,
     Path(schedule): Path<ScheduleInput>,
 ) -> Html<String> {
-    get_info(cache.client, schedule, Mode::BankaraOpen, query)
+    get_info(client, schedule, Mode::BankaraOpen, query)
         .await
         .unwrap_or(error_html())
 }
 
 pub async fn get_open_now(
-    State(cache): State<Cache>,
+    State(Cache { client }): State<Cache>,
     Query(query): Query<EmbedQuery>,
-) -> anyhow::Result<::axum::response::Html<String>> {
-    let r = q(cache.client, Mode::BankaraOpen, Schedule::Now).await?;
-    if r.results.is_empty() {
-        anyhow::bail!("")
-    } else {
-        Ok(render_embed_html_sche(
-            r.results.first().ok_or(anyhow::anyhow!(""))?,
-            query,
-        ))
-    }
+) -> Html<String> {
+    get_info(client, ScheduleInput::Now, Mode::BankaraOpen, query)
+        .await
+        .unwrap_or(error_html())
 }
 
 pub async fn get_regular_schedule(
-    State(cache): State<Cache>,
+    State(Cache { client }): State<Cache>,
     Query(query): Query<EmbedQuery>,
     Path(schedule): Path<ScheduleInput>,
 ) -> Html<String> {
-    get_info(cache.client, schedule, Mode::Regular, query)
+    get_info(client, schedule, Mode::Regular, query)
         .await
         .unwrap_or(error_html())
 }
 
 pub async fn get_regular_now(
-    State(cache): State<Cache>,
+    State(Cache { client }): State<Cache>,
     Query(query): Query<EmbedQuery>,
-) -> anyhow::Result<Html<String>> {
-    let r = q(cache.client, Mode::Regular, Schedule::Now).await?;
-    if r.results.is_empty() {
-        anyhow::bail!("")
-    } else {
-        Ok(render_embed_html_sche(
-            r.results.first().ok_or(anyhow::anyhow!(""))?,
-            query,
-        ))
-    }
+) -> Html<String> {
+    get_info(client, ScheduleInput::Now, Mode::Regular, query)
+        .await
+        .unwrap_or(error_html())
 }

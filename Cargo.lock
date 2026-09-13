@@ -2106,7 +2106,7 @@ dependencies = [
  "tokio",
  "tokio-rustls",
  "tower",
- "tower-http",
+ "tower-http 0.6.11",
  "tower-service",
  "url",
  "wasm-bindgen",
@@ -2494,7 +2494,7 @@ dependencies = [
  "serde_json",
  "strum",
  "tokio",
- "tower-http",
+ "tower-http 0.7.1",
  "urng",
 ]
 
@@ -2741,6 +2741,24 @@ checksum = "4cfcf7e2740e6fc6d4d688b4ef00650406bb94adf4731e43c096c3a19fe40840"
 dependencies = [
  "bitflags",
  "bytes",
+ "futures-util",
+ "http",
+ "http-body",
+ "pin-project-lite",
+ "tower",
+ "tower-layer",
+ "tower-service",
+ "url",
+]
+
+[[package]]
+name = "tower-http"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "08a05a66a4fdd61cbbe0a1d755ffe0ca6aba159dd4820936a0ff8a8278245b9c"
+dependencies = [
+ "bitflags",
+ "bytes",
  "futures-core",
  "futures-util",
  "http",
@@ -2754,10 +2772,8 @@ dependencies = [
  "pin-project-lite",
  "tokio",
  "tokio-util",
- "tower",
  "tower-layer",
  "tower-service",
- "url",
 ]
 
 [[package]]
@@ -2858,9 +2874,9 @@ dependencies = [
 
 [[package]]
 name = "urng"
-version = "1.0.0-rc.4"
+version = "0.14.0-rc.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dbf9f459f2066a6c277e3179ba3a0ca69c650e4075c72b57050d4fc8c6e702e1"
+checksum = "230ddce41a7327d0f7ea348293d507b938810999007b7000746df1bb83e39326"
 dependencies = [
  "bytemuck",
  "csbindgen",
@@ -3200,9 +3216,9 @@ checksum = "1ebf944e87a7c253233ad6766e082e3cd714b5d03812acc24c318f549614536e"
 
 [[package]]
 name = "wrapn"
-version = "0.8.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb0499b4ba6742b04da43dd20d70f9ac9642e4f3e0a5b988b04dbbbd2e162dcd"
+checksum = "edf1093490850d669796d9d553e5a8039a3d187a0537cedbf68b84e90e2118fc"
 dependencies = [
  "pastey 0.2.3",
 ]

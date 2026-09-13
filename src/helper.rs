@@ -8,16 +8,13 @@ use crate::{
 
 const SITE_URL: &str = "splat.site";
 
-pub fn render_embed_html_sche(info: &RawScheduleInfo, t: EmbedQuery) -> Html<String> {
-    build_html_sche(info, t)
-}
-
-pub fn render_embed_html_weapon(info: &RawWeaponInfo) -> Html<String> {
-    build_html_weapon(info)
+pub fn error_text() -> String {
+    // TODO
+    "Error".to_owned()
 }
 
 pub fn error_html() -> Html<String> {
-    Html("Error".to_owned())
+    Html(error_text())
 }
 
 fn escape_html<S: Into<String>>(s: S) -> String {
@@ -32,7 +29,7 @@ fn format_dt(dt: NaiveDateTime) -> String {
     dt.format("%m/%d %H:%M").to_string()
 }
 
-fn build_html_sche(info: &RawScheduleInfo, query: EmbedQuery) -> Html<String> {
+pub fn build_html_sche(info: &RawScheduleInfo, query: EmbedQuery) -> Html<String> {
     let desc = {
         let stage_names: Vec<_> = info
             .stages
@@ -105,7 +102,7 @@ fn build_html_sche(info: &RawScheduleInfo, query: EmbedQuery) -> Html<String> {
     ))
 }
 
-fn build_html_weapon(info: &RawWeaponInfo) -> Html<String> {
+pub fn build_html_weapon(info: &RawWeaponInfo) -> Html<String> {
     let title = escape_html(&info.name.ja_JP);
     let colour = escape_html("#ffffff");
 
