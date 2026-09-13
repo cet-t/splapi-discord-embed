@@ -15,18 +15,6 @@ use crate::{
     splatoon::{schedule, weapon},
 };
 
-macro_rules! helper_now {
-    ($cb:ident) => {
-        ::axum::routing::get(|c, q| async move {
-            ::axum::response::Html(
-                $cb(c, q)
-                    .await
-                    .unwrap_or_else(|_| ::axum::response::Html("Error".to_owned())),
-            )
-        })
-    };
-}
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
