@@ -1,48 +1,54 @@
 use axum::{
     extract::{Path, Query, State},
+    http::StatusCode,
     response::Html,
 };
 
 use crate::{
-    data::{Cache, EmbedQuery, ScheduleInput},
+    data::{EmbedQuery, ScheduleInput},
     helper::error_html,
     splatoon::schedule::{Mode, get_info},
+    state::AppState,
 };
 
 pub async fn get_open_schedule(
-    State(Cache { client }): State<Cache>,
+    State(state): State<AppState>,
     Query(query): Query<EmbedQuery>,
     Path(schedule): Path<ScheduleInput>,
-) -> Html<String> {
-    get_info(client, schedule, Mode::BankaraOpen, query)
+) -> (StatusCode, Html<String>) {
+    get_info(state, schedule, Mode::BankaraOpen, query)
         .await
-        .unwrap_or(error_html())
+        .map(|h| (StatusCode::OK, h))
+        .unwrap_or_else(|_| error_html())
 }
 
 pub async fn get_open_now(
-    State(Cache { client }): State<Cache>,
+    State(state): State<AppState>,
     Query(query): Query<EmbedQuery>,
-) -> Html<String> {
-    get_info(client, ScheduleInput::Now, Mode::BankaraOpen, query)
+) -> (StatusCode, Html<String>) {
+    get_info(state, ScheduleInput::Now, Mode::BankaraOpen, query)
         .await
-        .unwrap_or(error_html())
+        .map(|h| (StatusCode::OK, h))
+        .unwrap_or_else(|_| error_html())
 }
 
 pub async fn get_regular_schedule(
-    State(Cache { client }): State<Cache>,
+    State(state): State<AppState>,
     Query(query): Query<EmbedQuery>,
     Path(schedule): Path<ScheduleInput>,
-) -> Html<String> {
-    get_info(client, schedule, Mode::Regular, query)
+) -> (StatusCode, Html<String>) {
+    get_info(state, schedule, Mode::Regular, query)
         .await
-        .unwrap_or(error_html())
+        .map(|h| (StatusCode::OK, h))
+        .unwrap_or_else(|_| error_html())
 }
 
 pub async fn get_regular_now(
-    State(Cache { client }): State<Cache>,
+    State(state): State<AppState>,
     Query(query): Query<EmbedQuery>,
-) -> Html<String> {
-    get_info(client, ScheduleInput::Now, Mode::Regular, query)
+) -> (StatusCode, Html<String>) {
+    get_info(state, ScheduleInput::Now, Mode::Regular, query)
         .await
-        .unwrap_or(error_html())
+        .map(|h| (StatusCode::OK, h))
+        .unwrap_or_else(|_| error_html())
 }

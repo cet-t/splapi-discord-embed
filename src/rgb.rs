@@ -1,5 +1,11 @@
 #[derive(Debug, Default, Clone, Copy)]
-pub struct Rgb([u8; 3]);
+pub struct Rgb(pub [u8; 3]);
+
+impl Into<String> for Rgb {
+    fn into(self) -> String {
+        format!("{self}")
+    }
+}
 
 impl std::fmt::Display for Rgb {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

@@ -1,8 +1,9 @@
-use axum::response::Html;
+use axum::{http::StatusCode, response::Html};
 use chrono::NaiveDateTime;
 
 use crate::{
-    data::EmbedQuery,
+    data::{EmbedQuery, Response},
+    rgb::Rgb,
     splatoon::{schedule::RawScheduleInfo, weapon::RawWeaponInfo},
 };
 
@@ -10,11 +11,11 @@ const SITE_URL: &str = "splat.site";
 
 pub fn error_text() -> String {
     // TODO
-    "Error".to_owned()
+    "Internal server error".to_owned()
 }
 
-pub fn error_html() -> Html<String> {
-    Html(error_text())
+pub fn error_html() -> Response {
+    (StatusCode::INTERNAL_SERVER_ERROR, Html(error_text()))
 }
 
 fn escape_html<S: Into<String>>(s: S) -> String {
@@ -74,11 +75,7 @@ pub fn build_html_sche(info: &RawScheduleInfo, query: EmbedQuery) -> Html<String
 
     let title = escape_html(info.rule);
     let desc = escape_html(&desc);
-    let colour = if let Some(c) = query.colour {
-        format!("{c}")
-    } else {
-        info.rule.colour_string()
-    };
+    let colour = escape_html(query.colour.unwrap_or(info.rule.to_rgb()));
 
     Html(format!(
         r#"<!DOCTYPE html>
@@ -102,9 +99,26 @@ pub fn build_html_sche(info: &RawScheduleInfo, query: EmbedQuery) -> Html<String
     ))
 }
 
-pub fn build_html_weapon(info: &RawWeaponInfo) -> Html<String> {
-    let title = escape_html(&info.name.ja_JP);
-    let colour = escape_html("#ffffff");
+pub fn build_html_weapon(info: &[&RawWeaponInfo], colour: Option<Rgb>) -> Html<String> {
+    let title = escape_html("武器抽選");
+    let colour = escape_html(colour.unwrap_or(Rgb([0xff, 0xff, 0x10])));
+    let weapons: Vec<_> = info.iter().map(|&w| w.name.ja_JP.clone()).collect();
+
+    let w_meta = {
+        let weapons: Vec<_> = weapons
+            .iter()
+            .enumerate()
+            .map(|(i, w)| format!("{}. {}", i + 1, escape_html(w)))
+            .collect();
+        weapons.join("\n")
+    };
+    let w_body = {
+        let weapons: Vec<_> = weapons
+            .iter()
+            .map(|w| format!("<li>{}</li>", escape_html(w)))
+            .collect();
+        weapons.join(" ")
+    };
 
     Html(format!(
         r#"<!DOCTYPE html>
@@ -113,12 +127,15 @@ pub fn build_html_weapon(info: &RawWeaponInfo) -> Html<String> {
           <meta charset="utf-8">
           <meta property="og:site_name" content="{SITE_URL}">
           <meta property="og:title" content="{title}">
+          <meta property="og:description" content="{w_meta}">
           <meta name="twitter:card" content="summary">
           <meta name="theme-color" content="{colour}">
           <title>{title}</title>
         </head>
         <body>
-          <h1>{title}</h1>
+          <ul>
+            {w_body}
+          </ul>
         </body>
         </html>"#
     ))

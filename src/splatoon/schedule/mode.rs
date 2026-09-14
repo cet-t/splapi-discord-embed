@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, Copy, strum::EnumString)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, strum::EnumString)]
 pub enum Mode {
     #[strum(to_string = "regular")]
     Regular,

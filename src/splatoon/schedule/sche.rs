@@ -5,7 +5,7 @@ pub enum Schedule {
     #[strum(to_string = "next")]
     Next,
     #[strum(to_string = "schedule")]
-    After(u8),
+    After,
 }
 
 impl std::fmt::Display for Schedule {
@@ -16,7 +16,7 @@ impl std::fmt::Display for Schedule {
             match self {
                 self::Schedule::Now => "now",
                 self::Schedule::Next => "next",
-                self::Schedule::After(_) => "schedule",
+                self::Schedule::After => "schedule",
             }
         )
     }

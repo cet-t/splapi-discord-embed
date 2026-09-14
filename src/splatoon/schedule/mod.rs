@@ -12,60 +12,43 @@ pub use self::response::*;
 pub use self::rule::*;
 pub use self::sche::*;
 
+use crate::helper::error_text;
+use crate::state::AppState;
 use crate::{
     data::{EmbedQuery, ScheduleInput},
     helper::build_html_sche,
 };
 
-fn build_url(mode: self::Mode, sche: self::Schedule) -> String {
+pub fn build_url(mode: self::Mode, sche: self::Schedule) -> String {
     format!("https://spla3.yuu26.com/api/{mode}/{sche}")
 }
 
-async fn enquiry(client: reqwest::Client, url: String) -> anyhow::Result<self::RawResponse> {
+pub async fn enquiry(client: reqwest::Client, url: String) -> anyhow::Result<self::RawResponse> {
     let res = crate::get!(client, url);
     Ok(serde_json::from_str(&res)?)
-}
-
-async fn q(
-    client: reqwest::Client,
-    mode: self::Mode,
-    schedule: self::Schedule,
-) -> anyhow::Result<self::RawResponse> {
-    enquiry(client, build_url(mode, schedule)).await
-}
-
-async fn q_after(
-    client: reqwest::Client,
-    mode: self::Mode,
-    sche: self::Schedule,
-) -> anyhow::Result<self::RawScheduleInfo> {
-    let self::Schedule::After(index) = sche else {
-        anyhow::bail!("q_after requires a Schedule::After variant")
-    };
-
-    let r = q(client, mode, sche).await?;
-    r.results
-        .into_iter()
-        .nth(index as usize)
-        .ok_or_else(|| anyhow::anyhow!("n={index} is out of range"))
 }
 
 // --- core ---
 
 async fn get_info(
-    client: reqwest::Client,
+    AppState { client, cache }: AppState,
     schedule: ScheduleInput,
     mode: Mode,
     query: EmbedQuery,
 ) -> anyhow::Result<Html<String>> {
+    let mut cache = cache.lock().await;
+    let info = cache.fetch_schedule(client, mode).await?;
+
     Ok(match schedule {
-        ScheduleInput::Now => {
-            let r = q(client, mode, Schedule::Now).await?;
-            build_html_sche(r.results.first().ok_or(anyhow::anyhow!("ERROR"))?, query)
-        }
+        ScheduleInput::Now => build_html_sche(
+            info.first().ok_or(anyhow::anyhow!("{}", error_text()))?,
+            query,
+        ),
         ScheduleInput::Next => {
-            let info = q_after(client, mode, Schedule::After(query.n.unwrap_or(1))).await?;
-            build_html_sche(&info, query)
+            let info = info
+                .get(query.n.unwrap_or(1) as usize)
+                .ok_or(anyhow::anyhow!("{}", error_text()))?;
+            build_html_sche(info, query)
         }
     })
 }

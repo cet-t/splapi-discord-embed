@@ -1,4 +1,8 @@
+use axum::response::Html;
+
 use crate::rgb::Rgb;
+
+pub type Response = (reqwest::StatusCode, Html<String>);
 
 #[derive(serde::Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -33,18 +37,5 @@ impl std::fmt::Display for ScheduleInput {
                 ScheduleInput::Next => "next",
             }
         )
-    }
-}
-
-#[derive(Clone)]
-pub struct Cache {
-    pub client: reqwest::Client,
-}
-
-impl Cache {
-    pub fn new() -> Self {
-        Self {
-            client: reqwest::Client::new(),
-        }
     }
 }

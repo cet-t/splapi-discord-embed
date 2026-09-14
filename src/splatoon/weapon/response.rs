@@ -1,7 +1,7 @@
 pub type RawResponse = Vec<RawWeaponInfo>;
 
 #[allow(dead_code)]
-#[derive(serde::Deserialize)]
+#[derive(Clone, serde::Deserialize)]
 pub struct RawWeaponInfo {
     key: String,
     aliases: Vec<String>,
@@ -16,7 +16,7 @@ pub struct RawWeaponInfo {
 }
 
 #[allow(dead_code)]
-#[derive(serde::Deserialize)]
+#[derive(Clone, serde::Deserialize)]
 pub struct RawWeaponType {
     key: String,
     aliases: Vec<String>,
@@ -24,7 +24,7 @@ pub struct RawWeaponType {
 }
 
 #[allow(dead_code, non_snake_case)]
-#[derive(serde::Deserialize)]
+#[derive(Clone, serde::Deserialize)]
 pub struct RawWeaponName {
     en_US: String,
     pub ja_JP: String,

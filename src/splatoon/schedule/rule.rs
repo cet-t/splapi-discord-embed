@@ -1,3 +1,5 @@
+use crate::rgb::Rgb;
+
 #[derive(Debug, Clone, Copy, strum::EnumString)]
 pub enum Rule {
     #[strum(to_string = "TURF_WAR")]
@@ -25,12 +27,11 @@ impl<'de> serde::Deserialize<'de> for Rule {
 }
 
 impl Rule {
-    pub fn colour_string(&self) -> String {
+    pub fn to_rgb(self) -> Rgb {
         match self {
-            Rule::TurfWar => "#00ff00",
-            _ => "#ffa500",
+            Rule::TurfWar => Rgb([0x00, 0xff, 0x00]),
+            _ => Rgb([0xff, 0xa5, 0x00]),
         }
-        .to_owned()
     }
 }
 

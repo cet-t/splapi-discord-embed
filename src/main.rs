@@ -4,6 +4,7 @@ mod data;
 mod helper;
 mod rgb;
 mod splatoon;
+mod state;
 
 use axum::{Router, routing::get};
 use clap::Parser;
@@ -11,8 +12,8 @@ use tower_http::services::ServeDir;
 
 use crate::{
     cliargs::Cli,
-    data::Cache,
     splatoon::{schedule, weapon},
+    state::AppState,
 };
 
 #[tokio::main]
@@ -20,9 +21,7 @@ async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
     let addr = format!("0.0.0.0:{}", cli.port()?);
 
-    println!("Server Start: {addr}");
-
-    let cache = Cache::new();
+    let state = AppState::new();
 
     // build our application with a single route
     let app = Router::new()
@@ -35,7 +34,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/regular/{*schedule}", get(schedule::get_regular_schedule))
         // weapon
         .route("/weapon", get(weapon::get_weapon))
-        .with_state(cache)
+        .with_state(state)
         .nest_service("/fonts", ServeDir::new("assets/fonts"));
 
     // run our app with hyper, listening globally on port 3000
