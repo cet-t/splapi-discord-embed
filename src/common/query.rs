@@ -76,7 +76,7 @@ pub async fn get_url_builder() -> Html<String> {
       <br />
       <a
         class="gh-link"
-        href="https://github.com/cet-t/splapi-discord-embed"
+        href="https://github.com/cet-t/splat-site"
         target="_blank"
         rel="noopener"
       >
@@ -345,8 +345,8 @@ GET /regular/now</pre
     </main>
 
     <footer>
-      splapi3-discord-embed — API仕様書（<a
-        href="https://github.com/cet-t/splapi-discord-embed/blob/main/src/main.rs"
+      splat-site — API仕様書（<a
+        href="https://github.com/cet-t/splat-site/blob/main/src/main.rs"
         ><code>src/main.rs</code></a
       >
       より生成）
@@ -355,7 +355,7 @@ GET /regular/now</pre
       <br />
       <a
         class="gh-link"
-        href="https://github.com/cet-t/splapi-discord-embed"
+        href="https://github.com/cet-t/splat-site"
         target="_blank"
         rel="noopener"
       >
